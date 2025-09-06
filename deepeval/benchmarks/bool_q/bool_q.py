@@ -98,7 +98,10 @@ class BoolQ(DeepEvalBaseBenchmark):
             res: AffirmationSchema = model.generate(
                 prompt=prompt, schema=AffirmationSchema
             )
-            prediction = str(res.answer)
+            if isinstance(res, (tuple, list)):
+                prediction = str(res[0].answer)
+            else:
+                prediction = str(res.answer)
         except TypeError:
             prompt += f"\n\n{self.confinement_instructions}"
             prediction = model.generate(prompt)

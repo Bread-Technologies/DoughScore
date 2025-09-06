@@ -185,7 +185,10 @@ class DROP(DeepEvalBaseBenchmark):
             res: Union[DROPNumberSchema, DROPDateSchema, DROPStringSchema] = (
                 model.generate(prompt=prompt, schema=schema)
             )
-            prediction = str(res.answer)
+            if isinstance(res, (tuple, list)):
+                prediction = str(res[0].answer)
+            else:
+                prediction = str(res.answer)
         except TypeError:
             prompt += f"Output should be a {type_info}. No explanation needed."
             prediction = model.generate(prompt)
@@ -233,7 +236,10 @@ class DROP(DeepEvalBaseBenchmark):
             responses: List[
                 Union[DROPNumberSchema, DROPDateSchema, DROPStringSchema]
             ] = model.batch_generate(prompts=prompts, schemas=schemas)
-            predictions = [str(res.answer) for res in responses]
+            if isinstance(responses, (tuple, list)) and len(responses) > 0 and isinstance(responses[0], (tuple, list)):
+                predictions = [str(res[0].answer) for res in responses]
+            else:
+                predictions = [str(res.answer) for res in responses]
         except TypeError:
             prompts = [
                 prompt

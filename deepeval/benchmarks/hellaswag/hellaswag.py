@@ -186,7 +186,10 @@ class HellaSwag(DeepEvalBaseBenchmark):
             res: MultipleChoiceSchema = model.generate(
                 prompt=prompt, schema=MultipleChoiceSchema
             )
-            prediction = res.answer
+            if isinstance(res, (tuple, list)):
+                prediction = res[0].answer
+            else:
+                prediction = res.answer
         except TypeError:
             prompt += f"\n\n{self.confinement_instructions}"
             prediction = model.generate(prompt)
@@ -224,7 +227,10 @@ class HellaSwag(DeepEvalBaseBenchmark):
             responses: List[MultipleChoiceSchema] = model.batch_generate(
                 prompts=prompts, schemas=[MultipleChoiceSchema for i in prompts]
             )
-            predictions = [res.answer for res in responses]
+            if isinstance(responses, (tuple, list)) and len(responses) > 0 and isinstance(responses[0], (tuple, list)):
+                predictions = [res[0].answer for res in responses]
+            else:
+                predictions = [res.answer for res in responses]
         except TypeError:
             prompts = [
                 prompt

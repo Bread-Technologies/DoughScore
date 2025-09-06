@@ -99,7 +99,10 @@ class LAMBADA(DeepEvalBaseBenchmark):
             res: StringSchema = model.generate(
                 prompt=prompt, schema=StringSchema
             )
-            prediction = str(res.answer)
+            if isinstance(res, (tuple, list)):
+                prediction = str(res[0].answer)
+            else:
+                prediction = str(res.answer)
         except TypeError:
             prediction = model.generate(prompt)
 

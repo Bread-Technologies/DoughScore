@@ -211,7 +211,10 @@ class MathQA(DeepEvalBaseBenchmark):
                 prompts=prompts,
                 schemas=[MultipleChoiceSchemaLower for _ in prompts],
             )
-            predictions = [res.answer for res in responses]
+            if isinstance(responses, (tuple, list)) and len(responses) > 0 and isinstance(responses[0], (tuple, list)):
+                predictions = [res[0].answer for res in responses]
+            else:
+                predictions = [res.answer for res in responses]
         except TypeError:
             prompts = [
                 prompt

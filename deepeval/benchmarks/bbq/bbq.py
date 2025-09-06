@@ -136,7 +136,10 @@ class BBQ(DeepEvalBaseBenchmark):
             res: TrinaryChoiceSchema = model.generate(
                 prompt=prompt, schema=TrinaryChoiceSchema
             )
-            prediction = str(res.answer)
+            if isinstance(res, (tuple, list)):
+                prediction = str(res[0].answer)
+            else:
+                prediction = str(res.answer)
         except TypeError:
             prompt += f"\n\n{self.confinement_instructions}"
             prediction = model.generate(prompt)
@@ -154,7 +157,22 @@ class BBQ(DeepEvalBaseBenchmark):
     def load_benchmark_dataset(self, task: BBQTask) -> List[Golden]:
         from datasets import load_dataset
 
-        # Load full dataset
+        # Load full dataset - Elfsong/BBQ uses splits instead of configs
+        # Map enum values to lowercase split names
+        split_mapping = {
+            BBQTask.AGE: "age",
+            BBQTask.DISABILITY_STATUS: "disability_status",
+            BBQTask.GENDER_IDENTITY: "gender_identity",
+            BBQTask.NATIONALITY: "nationality",
+            BBQTask.PHYSICAL_APPEARANCE: "physical_appearance",
+            BBQTask.RACE_ETHNICITY: "race_ethnicity",
+            BBQTask.RACE_X_SES: "race_x_ses",
+            BBQTask.RACE_X_GENDER: "race_x_gender",
+            BBQTask.RELIGION: "religion",
+            BBQTask.SES: "ses",
+            BBQTask.SEXUAL_ORIENTATION: "sexual_orientation",
+        }
+        
         dataset_mapping = {
             BBQTask.AGE: "age_dataset",
             BBQTask.DISABILITY_STATUS: "disability_dataset",
@@ -169,16 +187,20 @@ class BBQ(DeepEvalBaseBenchmark):
             BBQTask.SEXUAL_ORIENTATION: "sexual_orientation_dataset",
         }
         dataset_attr = dataset_mapping.get(task)
-        if dataset_attr:
+        split_name = split_mapping.get(task)
+        
+        if dataset_attr and split_name:
             if not hasattr(self, dataset_attr):
-                dataset = load_dataset("heegyu/bbq", task.value)
+                # Load the specific split for this task
+                dataset = load_dataset("Elfsong/BBQ", split=split_name)
                 setattr(self, dataset_attr, dataset)
             else:
                 dataset = getattr(self, dataset_attr)
 
         # Construct test set
         goldens: List[Golden] = []
-        for data in dataset["test"]:
+        # The dataset is now a split, not a dataset with test key
+        for data in dataset:
             input = BBQTemplate.format_question(data, False)
             expected_output = BBQTemplate.format_answer(data)
             golden = Golden(input=input, expected_output=expected_output)

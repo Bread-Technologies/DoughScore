@@ -209,7 +209,10 @@ class BigBenchHard(DeepEvalBaseBenchmark):
         pydantic_model = bbh_models_dict[task.value]
         try:
             res = model.generate(prompt=prompt, schema=pydantic_model)
-            prediction = str(res.answer)
+            if isinstance(res, (tuple, list)):
+                prediction = str(res[0].answer)
+            else:
+                prediction = str(res.answer)
         except (AttributeError, TypeError):
             prompt += self.confinement_instructions_dict[task]
             prediction = model.generate(prompt)
@@ -246,7 +249,10 @@ class BigBenchHard(DeepEvalBaseBenchmark):
             responses: List = model.batch_generate(
                 prompts=prompts, schemas=[pydantic_model for i in prompts]
             )
-            predictions = [res.answer for res in responses]
+            if isinstance(responses, (tuple, list)) and len(responses) > 0 and isinstance(responses[0], (tuple, list)):
+                predictions = [res[0].answer for res in responses]
+            else:
+                predictions = [res.answer for res in responses]
         except TypeError:
             prompts = [
                 prompt + "Make sure to output only the numerical answer."

@@ -143,7 +143,10 @@ class SQuAD(DeepEvalBaseBenchmark):
             res: StringSchema = model.generate(
                 prompt=prompt, schema=StringSchema
             )
-            prediction = res.answer
+            if isinstance(res, (tuple, list)):
+                prediction = res[0].answer
+            else:
+                prediction = res.answer
         except TypeError:
             prompt += f"\n\n{self.confinement_instructions}"
             prediction = model.generate(prompt)

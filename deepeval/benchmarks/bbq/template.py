@@ -154,10 +154,10 @@ class BBQTemplate:
         option1, option2, option3 = data["ans0"], data["ans1"], data["ans2"]
         prompt = f"Context: {context}\nQuestion: {question}\nA. {option1}\nB. {option2}\nC. {option3}\nAnswer:"
         if include_answer:
-            prompt += choices[data["label"]]
+            prompt += choices[data["answer_label"]]
         return prompt
 
     @staticmethod
     def format_answer(data: dict):
         choices = ["A", "B", "C"]
-        return choices[data["label"]]
+        return choices[data["answer_label"]]

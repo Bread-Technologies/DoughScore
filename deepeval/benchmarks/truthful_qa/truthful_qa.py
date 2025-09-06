@@ -187,12 +187,18 @@ class TruthfulQA(DeepEvalBaseBenchmark):
                 res: NumberSchema = model.generate(
                     prompt=prompt, schema=NumberSchema
                 )
-                prediction = str(res.answer)
+                if isinstance(res, (tuple, list)):
+                    prediction = str(res[0].answer)
+                else:
+                    prediction = str(res.answer)
             elif mode == TruthfulQAMode.MC2:
                 res: ListOfNumbersSchema = model.generate(
                     prompt=prompt, schema=ListOfNumbersSchema
                 )
-                prediction = str(res.answer)
+                if isinstance(res, (tuple, list)):
+                    prediction = str(res[0].answer)
+                else:
+                    prediction = str(res.answer)
 
         except (TypeError, ValueError, AttributeError):
             prompt += self.confinement_instructions_dict[mode]
@@ -234,13 +240,19 @@ class TruthfulQA(DeepEvalBaseBenchmark):
                 responses: List[NumberSchema] = model.batch_generate(
                     prompts=prompts, schemas=[NumberSchema for i in prompts]
                 )
-                predictions = [str(res.answer) for res in responses]
+                if isinstance(responses, (tuple, list)) and len(responses) > 0 and isinstance(responses[0], (tuple, list)):
+                    predictions = [str(res[0].answer) for res in responses]
+                else:
+                    predictions = [str(res.answer) for res in responses]
             elif mode == TruthfulQAMode.MC2:
                 responses: List[ListOfNumbersSchema] = model.batch_generate(
                     prompts=prompts,
                     schemas=[ListOfNumbersSchema for i in prompts],
                 )
-                predictions = [str(res.answer) for res in responses]
+                if isinstance(responses, (tuple, list)) and len(responses) > 0 and isinstance(responses[0], (tuple, list)):
+                    predictions = [str(res[0].answer) for res in responses]
+                else:
+                    predictions = [str(res.answer) for res in responses]
 
         except (TypeError, ValueError, AttributeError):
             if mode == TruthfulQAMode.MC1:

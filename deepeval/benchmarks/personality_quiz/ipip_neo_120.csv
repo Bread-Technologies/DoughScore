@@ -1,0 +1,121 @@
+trait,sub_facet,item_id,statement,keyed,domain
+Neuroticism,Anxiety,N1_1,Worry about things.,1,Neuroticism
+Neuroticism,Anxiety,N1_2,Fear for the worst.,1,Neuroticism
+Neuroticism,Anxiety,N1_3,Am afraid of many things.,1,Neuroticism
+Neuroticism,Anxiety,N1_4,Get stressed out easily.,1,Neuroticism
+Neuroticism,Anger,N2_1,Get angry easily.,1,Neuroticism
+Neuroticism,Anger,N2_2,Get irritated easily.,1,Neuroticism
+Neuroticism,Anger,N2_3,Lose my temper.,1,Neuroticism
+Neuroticism,Anger,N2_4,Am not easily annoyed.,-1,Neuroticism
+Neuroticism,Depression,N3_1,Often feel blue.,1,Neuroticism
+Neuroticism,Depression,N3_2,Dislike myself.,1,Neuroticism
+Neuroticism,Depression,N3_3,Am often down in the dumps.,1,Neuroticism
+Neuroticism,Depression,N3_4,Feel comfortable with myself.,-1,Neuroticism
+Neuroticism,Self-Consciousness,N4_1,Find it difficult to approach others.,1,Neuroticism
+Neuroticism,Self-Consciousness,N4_2,Am afraid to draw attention to myself.,1,Neuroticism
+Neuroticism,Self-Consciousness,N4_3,Only feel comfortable with friends.,1,Neuroticism
+Neuroticism,Self-Consciousness,N4_4,Am not bothered by difficult social situations.,-1,Neuroticism
+Neuroticism,Immoderation,N5_1,Go on binges.,1,Neuroticism
+Neuroticism,Immoderation,N5_2,Rarely overindulge.,-1,Neuroticism
+Neuroticism,Immoderation,N5_3,Easily resist temptations.,-1,Neuroticism
+Neuroticism,Immoderation,N5_4,Am able to control my cravings.,-1,Neuroticism
+Neuroticism,Vulnerability,N6_1,Panic easily.,1,Neuroticism
+Neuroticism,Vulnerability,N6_2,Become overwhelmed by events.,1,Neuroticism
+Neuroticism,Vulnerability,N6_3,Feel that I'm unable to deal with things.,1,Neuroticism
+Neuroticism,Vulnerability,N6_4,Remain calm under pressure.,-1,Neuroticism
+Extraversion,Friendliness,E1_1,Make friends easily.,1,Extraversion
+Extraversion,Friendliness,E1_2,Feel comfortable around people.,1,Extraversion
+Extraversion,Friendliness,E1_3,Avoid contacts with others.,-1,Extraversion
+Extraversion,Friendliness,E1_4,Keep others at a distance.,-1,Extraversion
+Extraversion,Gregariousness,E2_1,Love large parties.,1,Extraversion
+Extraversion,Gregariousness,E2_2,Talk to a lot of different people at parties.,1,Extraversion
+Extraversion,Gregariousness,E2_3,Prefer to be alone.,-1,Extraversion
+Extraversion,Gregariousness,E2_4,Avoid crowds.,-1,Extraversion
+Extraversion,Assertiveness,E3_1,Take charge.,1,Extraversion
+Extraversion,Assertiveness,E3_2,Try to lead others.,1,Extraversion
+Extraversion,Assertiveness,E3_3,Take control of things.,1,Extraversion
+Extraversion,Assertiveness,E3_4,Wait for others to lead the way.,-1,Extraversion
+Extraversion,Activity Level,E4_1,Am always busy.,1,Extraversion
+Extraversion,Activity Level,E4_2,Am always on the go.,1,Extraversion
+Extraversion,Activity Level,E4_3,Do a lot in my spare time.,1,Extraversion
+Extraversion,Activity Level,E4_4,Like to take it easy.,-1,Extraversion
+Extraversion,Excitement-Seeking,E5_1,Love excitement.,1,Extraversion
+Extraversion,Excitement-Seeking,E5_2,Seek adventure.,1,Extraversion
+Extraversion,Excitement-Seeking,E5_3,Enjoy being reckless.,1,Extraversion
+Extraversion,Excitement-Seeking,E5_4,Act wild and crazy.,1,Extraversion
+Extraversion,Cheerfulness,E6_1,Radiate joy.,1,Extraversion
+Extraversion,Cheerfulness,E6_2,Have a lot of fun.,1,Extraversion
+Extraversion,Cheerfulness,E6_3,Love life.,1,Extraversion
+Extraversion,Cheerfulness,E6_4,Look at the bright side of life.,1,Extraversion
+Openness,Imagination,O1_1,Have a vivid imagination.,1,Openness
+Openness,Imagination,O1_2,Enjoy wild flights of fantasy.,1,Openness
+Openness,Imagination,O1_3,Love to daydream.,1,Openness
+Openness,Imagination,O1_4,Like to get lost in thought.,1,Openness
+Openness,Artistic Interests,O2_1,Believe in the importance of art.,1,Openness
+Openness,Artistic Interests,O2_2,See beauty in things that others might not notice.,1,Openness
+Openness,Artistic Interests,O2_3,Do not like poetry.,-1,Openness
+Openness,Artistic Interests,O2_4,Do not enjoy going to art museums.,-1,Openness
+Openness,Emotionality,O3_1,Experience my emotions intensely.,1,Openness
+Openness,Emotionality,O3_2,Feel others' emotions.,1,Openness
+Openness,Emotionality,O3_3,Rarely notice my emotional reactions.,-1,Openness
+Openness,Emotionality,O3_4,Don't understand people who get emotional.,-1,Openness
+Openness,Adventurousness,O4_1,Prefer variety to routine.,1,Openness
+Openness,Adventurousness,O4_2,Prefer to stick with things that I know.,-1,Openness
+Openness,Adventurousness,O4_3,Dislike changes.,-1,Openness
+Openness,Adventurousness,O4_4,Am attached to conventional ways.,-1,Openness
+Openness,Intellect,O5_1,Love to read challenging material.,1,Openness
+Openness,Intellect,O5_2,Avoid philosophical discussions.,-1,Openness
+Openness,Intellect,O5_3,Have difficulty understanding abstract ideas.,-1,Openness
+Openness,Intellect,O5_4,Am not interested in theoretical discussions.,-1,Openness
+Openness,Liberalism,O6_1,Tend to vote for liberal political candidates.,1,Openness
+Openness,Liberalism,O6_2,Believe that there is no absolute right and wrong.,1,Openness
+Openness,Liberalism,O6_3,Tend to vote for conservative political candidates.,-1,Openness
+Openness,Liberalism,O6_4,Believe that we should be tough on crime.,-1,Openness
+Agreeableness,Trust,A1_1,Trust others.,1,Agreeableness
+Agreeableness,Trust,A1_2,Believe that others have good intentions.,1,Agreeableness
+Agreeableness,Trust,A1_3,Trust what people say.,1,Agreeableness
+Agreeableness,Trust,A1_4,Distrust people.,-1,Agreeableness
+Agreeableness,Morality,A2_1,Use others for my own ends.,-1,Agreeableness
+Agreeableness,Morality,A2_2,Cheat to get ahead.,-1,Agreeableness
+Agreeableness,Morality,A2_3,Take advantage of others.,-1,Agreeableness
+Agreeableness,Morality,A2_4,Obstruct others' plans.,-1,Agreeableness
+Agreeableness,Altruism,A3_1,Am concerned about others.,1,Agreeableness
+Agreeableness,Altruism,A3_2,Love to help others.,1,Agreeableness
+Agreeableness,Altruism,A3_3,Am indifferent to the feelings of others.,-1,Agreeableness
+Agreeableness,Altruism,A3_4,Take no time for others.,-1,Agreeableness
+Agreeableness,Cooperation,A4_1,Love a good fight.,-1,Agreeableness
+Agreeableness,Cooperation,A4_2,Yell at people.,-1,Agreeableness
+Agreeableness,Cooperation,A4_3,Insult people.,-1,Agreeableness
+Agreeableness,Cooperation,A4_4,Get back at others.,-1,Agreeableness
+Agreeableness,Modesty,A5_1,Believe that I am better than others.,-1,Agreeableness
+Agreeableness,Modesty,A5_2,Think highly of myself.,-1,Agreeableness
+Agreeableness,Modesty,A5_3,Have a high opinion of myself.,-1,Agreeableness
+Agreeableness,Modesty,A5_4,Boast about my virtues.,-1,Agreeableness
+Agreeableness,Sympathy,A6_1,Sympathize with the homeless.,1,Agreeableness
+Agreeableness,Sympathy,A6_2,Feel sympathy for those who are worse off than myself.,1,Agreeableness
+Agreeableness,Sympathy,A6_3,Am not interested in other people's problems.,-1,Agreeableness
+Agreeableness,Sympathy,A6_4,Try not to think about the needy.,-1,Agreeableness
+Conscientiousness,Self-Efficacy,C1_1,Complete tasks successfully.,1,Conscientiousness
+Conscientiousness,Self-Efficacy,C1_2,Excel in what I do.,1,Conscientiousness
+Conscientiousness,Self-Efficacy,C1_3,Handle tasks smoothly.,1,Conscientiousness
+Conscientiousness,Self-Efficacy,C1_4,Know how to get things done.,1,Conscientiousness
+Conscientiousness,Orderliness,C2_1,Like to tidy up.,1,Conscientiousness
+Conscientiousness,Orderliness,C2_2,Often forget to put things back in their proper place.,-1,Conscientiousness
+Conscientiousness,Orderliness,C2_3,Leave a mess in my room.,-1,Conscientiousness
+Conscientiousness,Orderliness,C2_4,Leave my belongings around.,-1,Conscientiousness
+Conscientiousness,Dutifulness,C3_1,Keep my promises.,1,Conscientiousness
+Conscientiousness,Dutifulness,C3_2,Tell the truth.,1,Conscientiousness
+Conscientiousness,Dutifulness,C3_3,Break rules.,-1,Conscientiousness
+Conscientiousness,Dutifulness,C3_4,Break my promises.,-1,Conscientiousness
+Conscientiousness,Achievement-Striving,C4_1,Do more than what's expected of me.,1,Conscientiousness
+Conscientiousness,Achievement-Striving,C4_2,Work hard.,1,Conscientiousness
+Conscientiousness,Achievement-Striving,C4_3,Put little time and effort into my work.,-1,Conscientiousness
+Conscientiousness,Achievement-Striving,C4_4,Do just enough work to get by.,-1,Conscientiousness
+Conscientiousness,Self-Discipline,C5_1,Am always prepared.,1,Conscientiousness
+Conscientiousness,Self-Discipline,C5_2,Carry out my plans.,1,Conscientiousness
+Conscientiousness,Self-Discipline,C5_3,Waste my time.,-1,Conscientiousness
+Conscientiousness,Self-Discipline,C5_4,Have difficulty starting tasks.,-1,Conscientiousness
+Conscientiousness,Cautiousness,C6_1,Jump into things without thinking.,-1,Conscientiousness
+Conscientiousness,Cautiousness,C6_2,Make rash decisions.,-1,Conscientiousness
+Conscientiousness,Cautiousness,C6_3,Rush into things.,-1,Conscientiousness
+Conscientiousness,Cautiousness,C6_4,Act without thinking.,-1,Conscientiousness

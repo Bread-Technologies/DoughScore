@@ -509,7 +509,10 @@ class IFEval(DeepEvalBaseBenchmark):
             res: StringSchema = model.generate(
                 prompt=golden.input, schema=StringSchema
             )
-            prediction = res.answer
+            if isinstance(res, (tuple, list)):
+                prediction = res[0].answer
+            else:
+                prediction = res.answer
         except (TypeError, AttributeError):
             res = model.generate(golden.input)
             prediction = str(res)

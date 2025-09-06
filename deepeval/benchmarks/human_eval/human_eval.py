@@ -123,8 +123,9 @@ class HumanEval(DeepEvalBaseBenchmark):
                         task.value,
                         golden.input,
                         prediction,
+                        score,  # This is the "Correct" column (boolean)
                         golden.expected_output,
-                        score,
+                        score,  # This is the "Score" column (same as Correct for HumanEval)
                     )
                 )
                 if self.verbose_mode:
@@ -181,7 +182,7 @@ class HumanEval(DeepEvalBaseBenchmark):
                 input=golden.input,
                 task=task,
             )
-            functions = model.generate_samples(
+            functions, _ = model.generate_samples(
                 prompt=prompt, n=self.n, temperature=self.temperature
             )
             c = 0
