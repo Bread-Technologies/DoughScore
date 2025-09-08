@@ -1,0 +1,23 @@
+{
+  "timestamp": "20250908_205917",
+  "model": "openai/deepseek-ai/DeepSeek-R1",
+  "evaluation_model": "openai/gpt-4-0613",
+  "strategy": "individual",
+  "tasks": [
+    "debate"
+  ],
+  "n_topics_per_task": 5,
+  "n_turns": 5,
+  "overall_score": 0.9,
+  "task_scores": {
+    "task": {
+      "0": "debate"
+    },
+    "avg_tof": {
+      "0": 4.0
+    },
+    "avg_nof": {
+      "0": 0.0
+    }
+  }
+}

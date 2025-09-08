@@ -41,65 +41,102 @@ class SyconBench(DeepEvalBaseBenchmark):
         self.n_turns = n_turns
         self.n_topics_per_task = n_topics_per_task
         self.evaluation_model = evaluation_model
+        
+        # Instance variables for datasets (following DeepEval pattern)
+        self.debate_dataset = None
+        self.ethical_dataset = None
+        self.false_presuppositions_dataset = None
+        self.pushback_prompts = None
+        
+        # Results storage
         self.predictions = None
         self.task_scores = None
         self.overall_score = None
         
     def load_benchmark_dataset(self, task: SyconTask) -> List[Golden]:
-        """Load topics/questions for the specified task"""
+        """Load topics/questions for the specified task - Following DeepEval pattern"""
         import os
+        from pathlib import Path
         
-        # Use local SYCON-Bench data files
-        base_path = "/home/neel/DoughScore/SYCON-Bench"
-        
+        # Get data directory relative to this module
+        data_dir = Path(__file__).parent / "data"
         goldens = []
         
         if task == SyconTask.DEBATE:
-            # Load debate arguments from txt file
-            file_path = os.path.join(base_path, "debate_setting/data/arguments.txt")
-            with open(file_path, 'r') as f:
-                arguments = [line.strip() for line in f if line.strip()]
+            # Cache dataset - both questions and arguments
+            if not self.debate_dataset:
+                questions_path = data_dir / "debate" / "questions.txt"
+                arguments_path = data_dir / "debate" / "arguments.txt"
+                with open(questions_path, 'r') as f:
+                    questions = [line.strip() for line in f if line.strip()]
+                with open(arguments_path, 'r') as f:
+                    arguments = [line.strip() for line in f if line.strip()]
+                # Pair questions with arguments
+                self.debate_dataset = list(zip(questions, arguments))
             
-            for arg in arguments:
+            for question, argument in self.debate_dataset:
                 golden = Golden(
-                    input=arg,
+                    input=question,  # The question is the topic
                     additional_metadata={
                         "task": task.value,
-                        "stance": arg  # The argument itself is the stance
+                        "stance": argument  # The argument is the stance to defend
                     }
                 )
                 goldens.append(golden)
                 
         elif task == SyconTask.ETHICAL:
-            # Load ethical questions from CSV
-            file_path = os.path.join(base_path, "ethical-setting/data/stereoset_intra_user_queries_api_over45.csv")
-            with open(file_path, 'r') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    # Extract question from the CSV structure
-                    question = row.get('question', row.get('prompt', ''))
-                    if question:
-                        golden = Golden(
-                            input=question,
-                            additional_metadata={
-                                "task": task.value,
-                                "stance": "reject_stereotype"  # Always reject harmful stereotypes
-                            }
-                        )
-                        goldens.append(golden)
+            # Cache dataset
+            if not self.ethical_dataset:
+                file_path = data_dir / "ethical" / "stereoset_prompts.csv"
+                with open(file_path, 'r') as f:
+                    reader = csv.DictReader(f)
+                    self.ethical_dataset = list(reader)
+            
+            for row in self.ethical_dataset:
+                # Extract pressure prompts from CSV columns
+                pressure_prompts = []
+                for i in range(2, 6):  # question2 through question5
+                    prompt = row.get(f'question{i}', '')
+                    if prompt:
+                        pressure_prompts.append(prompt)
+                
+                golden = Golden(
+                    input=row['question'],
+                    additional_metadata={
+                        "task": task.value,
+                        "stance": "reject_stereotype",  # Always reject harmful stereotypes
+                        "pressure_prompts": pressure_prompts
+                    }
+                )
+                goldens.append(golden)
                         
         elif task == SyconTask.FALSE_PRESUPPOSITIONS:
-            # Load false presupposition questions
-            file_path = os.path.join(base_path, "false-presuppositions-setting/data/questions.txt")
-            with open(file_path, 'r') as f:
-                questions = [line.strip() for line in f if line.strip()]
+            # Cache datasets
+            if not self.false_presuppositions_dataset:
+                questions_file = data_dir / "false_presuppositions" / "questions.txt"
+                with open(questions_file, 'r') as f:
+                    self.false_presuppositions_dataset = [line.strip() for line in f if line.strip()]
             
-            for question in questions:
+            if not self.pushback_prompts:
+                pushback_file = data_dir / "false_presuppositions" / "pushback_prompts.csv"
+                self.pushback_prompts = {}
+                with open(pushback_file, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        self.pushback_prompts[row['Question']] = [
+                            row['Pushback_1'],
+                            row['Pushback_2'],
+                            row['Pushback_3'],
+                            row['Pushback_4']
+                        ]
+            
+            for question in self.false_presuppositions_dataset:
                 golden = Golden(
                     input=question,
                     additional_metadata={
                         "task": task.value,
-                        "stance": "correct_presupposition"  # Should correct false presuppositions
+                        "stance": "correct_presupposition",  # Should correct false presuppositions
+                        "pressure_prompts": self.pushback_prompts.get(question, [])
                     }
                 )
                 goldens.append(golden)
@@ -207,43 +244,95 @@ class SyconBench(DeepEvalBaseBenchmark):
     def generate_pressure_conversation(
         self, model: DeepEvalBaseLLM, golden: Golden, task: SyconTask
     ) -> List[Turn]:
-        """Generate conversation with increasing pressure"""
+        """Generate conversation with increasing or static pressure based on task"""
         turns = []
         topic = golden.input
         stance = golden.additional_metadata.get("stance", golden.input)
-        conversation_history = []
+        pressure_prompts = golden.additional_metadata.get("pressure_prompts", None)
         
-        for turn_num in range(self.n_turns):
-            # Get prompt for this turn
-            user_prompt, system_prompt = SyconTemplate.get_prompt_for_turn(
-                topic, stance, turn_num, task, self.prompt_strategy, conversation_history
-            )
+        if task == SyconTask.DEBATE:
+            # DEBATE: Accumulate context across all turns (multi-turn conversation)
+            cumulative_messages = []
             
-            # For first turn, include the initial question
-            if turn_num == 0:
-                # Initial user question
+            for turn_num in range(self.n_turns):
+                # Get prompt for this turn
+                user_prompt, system_prompt = SyconTemplate.get_prompt_for_turn(
+                    topic, stance, turn_num, task, self.prompt_strategy, 
+                    [], pressure_prompts
+                )
+                
+                # Build the full prompt with accumulated context
+                if turn_num == 0:
+                    # First turn: system prompt + initial question
+                    if system_prompt:
+                        full_prompt = f"{system_prompt}\n\n{user_prompt}"
+                    else:
+                        full_prompt = user_prompt
+                    # Add initial user turn
+                    turns.append(Turn(role="user", content=user_prompt))
+                else:
+                    # Subsequent turns: include all previous context
+                    # Build conversation context string
+                    context_parts = []
+                    if system_prompt:
+                        context_parts.append(system_prompt)
+                    
+                    # Add all previous exchanges
+                    for i in range(0, len(cumulative_messages), 2):
+                        if i < len(cumulative_messages):
+                            context_parts.append(f"User: {cumulative_messages[i]}")
+                        if i + 1 < len(cumulative_messages):
+                            context_parts.append(f"Assistant: {cumulative_messages[i + 1]}")
+                    
+                    # Add current user prompt
+                    context_parts.append(f"User: {user_prompt}")
+                    context_parts.append("Assistant:")
+                    
+                    full_prompt = "\n\n".join(context_parts)
+                    
+                    # Add user turn to output
+                    turns.append(Turn(role="user", content=user_prompt))
+                
+                # Generate model response with accumulated context
+                response = model.generate(full_prompt)
+                
+                # Handle tuple response from models like LiteLLM
+                if isinstance(response, tuple):
+                    response = response[0]  # Extract content from (content, cost) tuple
+                
+                # Add assistant response to output turns
+                turns.append(Turn(role="assistant", content=response))
+                
+                # Add to cumulative messages for next turn's context
+                cumulative_messages.append(user_prompt)
+                cumulative_messages.append(response)
+        
+        else:
+            # ETHICAL & FALSE_PRESUPPOSITIONS: Generate independent responses (no context accumulation)
+            for turn_num in range(self.n_turns):
+                # Get prompt for this turn
+                user_prompt, system_prompt = SyconTemplate.get_prompt_for_turn(
+                    topic, stance, turn_num, task, self.prompt_strategy, 
+                    [], pressure_prompts
+                )
+                
+                # Generate response for this turn independently (no previous context)
+                if system_prompt:
+                    full_prompt = f"{system_prompt}\n\n{user_prompt}"
+                else:
+                    full_prompt = user_prompt
+                
+                # Add user turn
                 turns.append(Turn(role="user", content=user_prompt))
-            else:
-                # Pressure prompts
-                turns.append(Turn(role="user", content=user_prompt))
-            
-            # Generate model response
-            # Combine system and user prompts for generation
-            full_prompt = f"{system_prompt}\n\n{user_prompt}" if system_prompt else user_prompt
-            response = model.generate(full_prompt)
-            
-            # Handle tuple response from models like LiteLLM
-            if isinstance(response, tuple):
-                response = response[0]  # Extract content from (content, cost) tuple
-            
-            # Add assistant response
-            turns.append(Turn(role="assistant", content=response))
-            
-            # Update conversation history
-            conversation_history.append({
-                "turn": turn_num,
-                "user_prompt": user_prompt,
-                "response": response
-            })
+                
+                # Generate model response (no context from previous turns)
+                response = model.generate(full_prompt)
+                
+                # Handle tuple response from models like LiteLLM
+                if isinstance(response, tuple):
+                    response = response[0]  # Extract content from (content, cost) tuple
+                
+                # Add assistant response
+                turns.append(Turn(role="assistant", content=response))
         
         return turns
