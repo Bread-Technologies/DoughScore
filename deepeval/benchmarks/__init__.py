@@ -17,6 +17,7 @@ from .equity_med_qa.equity_med_qa import EquityMedQA
 from .ifeval.ifeval import IFEval
 from .turing_test.turing_test import TuringTest
 from .ai_belief_test.ai_belief_test import AIBeliefTest
+from .rare_word_usage.rare_word_usage import RareWordUsageBenchmark
 
 __all__ = [
     "BigBenchHard",
@@ -38,4 +39,5 @@ __all__ = [
     "IFEval",
     "TuringTest",
     "AIBeliefTest",
+    "RareWordUsageBenchmark",
 ]
