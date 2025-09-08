@@ -1,4 +1,5 @@
 from typing import Optional, Tuple, Union, Dict, List, get_origin, get_args
+from typing import Optional, Tuple, Union, Dict, List
 from anthropic import Anthropic, AsyncAnthropic
 from pydantic import BaseModel
 import os
@@ -62,312 +63,92 @@ class AnthropicModel(DeepEvalBaseLLM):
         self, prompt: str, schema: Optional[BaseModel] = None
     ) -> Tuple[Union[str, Dict], float]:
         chat_model = self.load_model()
-        
-        # Enhanced schema awareness for Anthropic models
-        if schema is not None:
-            # Add explicit JSON format instruction to the prompt
-            schema_instruction = self._get_schema_instruction(schema)
-            enhanced_prompt = f"{prompt}\n\n{schema_instruction}"
-        else:
-            enhanced_prompt = prompt
-        
-        # Prepare request parameters
-        max_tokens = 1024
-        
-        # Add thinking parameters if enabled
-        if self.enable_thinking:
-            # When thinking is enabled, max_tokens must be greater than thinking budget
-            max_tokens = max(1024, self.thinking_budget_tokens + 100)
-        
-        request_params = {
-            "max_tokens": max_tokens,
-            "messages": [
+        message = chat_model.messages.create(
+            max_tokens=1024,
+            messages=[
                 {
                     "role": "user",
                     "content": enhanced_prompt,
                 }
             ],
-            "model": self.model_name,
-            "temperature": self.temperature,
+            model=self.model_name,
+            temperature=self.temperature,
             **self.generation_kwargs,
-        }
-        
-        # Add thinking parameters if enabled
-        if self.enable_thinking:
-            request_params["thinking"] = {
-                "type": "enabled",
-                "budget_tokens": self.thinking_budget_tokens
-            }
-            # When thinking is enabled, temperature must be 1
-            request_params["temperature"] = 1
-            
-        message = chat_model.messages.create(**request_params)
+        )
         cost = self.calculate_cost(
             message.usage.input_tokens, message.usage.output_tokens
         )
-        
-        # Extract the final text from the response (handles thinking vs non-thinking)
-        final_text = self._extract_final_text(message)
-        
         if schema is None:
-            return final_text, cost
+            return message.content[0].text, cost
         else:
-            try:
-                # Try to parse the raw text as JSON directly first
-                import json
-                json_data = json.loads(final_text.strip())
-                return schema.model_validate(json_data), cost
-            except Exception as e:
-                # If direct JSON parsing fails, try the thinking model extraction
-                try:
-                    json_output = self._extract_json_from_thinking_model(final_text)
-                    return schema.model_validate(json_output), cost
-                except Exception as e2:
-                    # If JSON parsing fails, try to extract answer from raw text
-                    print(f"DEBUG: JSON parsing failed: {e2}")
-                    print(f"DEBUG: Raw response: {repr(final_text)}")
-                    
-                    # Try to extract answer from raw text using regex
-                    extracted_answer = self._extract_answer_from_text(final_text, schema)
-                    if extracted_answer is not None:
-                        try:
-                            # Create a dict with the extracted answer and validate with schema
-                            answer_dict = {"answer": extracted_answer}
-                            return schema.model_validate(answer_dict), cost
-                        except Exception:
-                            pass
-                    
-                    # If all else fails, return the raw text and let the benchmark handle it
-                    return final_text, cost  # Return tuple with text and cost
+            json_output = trim_and_load_json(message.content[0].text)
+            return schema.model_validate(json_output), cost
 
-    async def a_generate(
-        self, prompt: str, schema: Optional[BaseModel] = None
+    async def a_chat_generate(
+        self, messages: List[Dict[str, str]], schema: Optional[BaseModel] = None
     ) -> Tuple[str, float]:
         chat_model = self.load_model(async_mode=True)
-        
-        # Enhanced schema awareness for Anthropic models
-        if schema is not None:
-            # Add explicit JSON format instruction to the prompt
-            schema_instruction = self._get_schema_instruction(schema)
-            enhanced_prompt = f"{prompt}\n\n{schema_instruction}"
-        else:
-            enhanced_prompt = prompt
-        
-        # Prepare request parameters
-        max_tokens = 1024
-        
-        # Add thinking parameters if enabled
-        if self.enable_thinking:
-            # When thinking is enabled, max_tokens must be greater than thinking budget
-            max_tokens = max(1024, self.thinking_budget_tokens + 100)
-        
-        request_params = {
-            "max_tokens": max_tokens,
-            "messages": [
+        message = await chat_model.messages.create(
+            max_tokens=1024,
+            messages=[
                 {
                     "role": "user",
-                    "content": enhanced_prompt,
+                    "content": prompt,
                 }
             ],
-            "model": self.model_name,
-            "temperature": self.temperature,
+            model=self.model_name,
+            temperature=self.temperature,
             **self.generation_kwargs,
-        }
-        
-        # Add thinking parameters if enabled
-        if self.enable_thinking:
-            request_params["thinking"] = {
-                "type": "enabled",
-                "budget_tokens": self.thinking_budget_tokens
-            }
-            # When thinking is enabled, temperature must be 1
-            request_params["temperature"] = 1
-            
-        message = await chat_model.messages.create(**request_params)
+        )
         cost = self.calculate_cost(
             message.usage.input_tokens, message.usage.output_tokens
         )
-        
-        # Extract the final text from the response (handles thinking vs non-thinking)
-        final_text = self._extract_final_text(message)
-        
         if schema is None:
-            return final_text, cost
+            return message.content[0].text, cost
         else:
-            try:
-                json_output = self._extract_json_from_thinking_model(final_text)
-                return schema.model_validate(json_output), cost  # Return tuple with schema object and cost
-            except Exception as e:
-                # If JSON parsing fails, try to extract answer from raw text
-                print(f"DEBUG: JSON parsing failed: {e}")
-                print(f"DEBUG: Raw response: {repr(final_text)}")
-                
-                # Try to extract answer from raw text using regex
-                extracted_answer = self._extract_answer_from_text(final_text, schema)
-                if extracted_answer is not None:
-                    try:
-                        # Create a dict with the extracted answer and validate with schema
-                        answer_dict = {"answer": extracted_answer}
-                        return schema.model_validate(answer_dict), cost
-                    except Exception:
-                        pass
-                
-                # If all else fails, return the raw text and let the benchmark handle it
-                return final_text, cost  # Return tuple with text and cost
+            json_output = trim_and_load_json(message.content[0].text)
 
-    def _extract_answer_from_text(self, text: str, schema: BaseModel) -> Optional[str]:
-        """
-        Try to extract an answer from raw text when JSON parsing fails.
-        This is a fallback for when the model returns text instead of JSON.
-        """
-        import re
-        
-        # Try to find JSON-like patterns in the text
-        json_patterns = [
-            r'{"answer":\s*"([^"]+)"}',  # {"answer": "A"}
-            r'"answer":\s*"([^"]+)"',    # "answer": "A"
-            r'answer["\']?\s*:\s*["\']?([A-Za-z0-9]+)',  # answer: A or answer: "A"
-        ]
-        
-        for pattern in json_patterns:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                answer = matches[-1].strip()  # Take the last match
-                # Try to validate if this answer would work with the schema
-                try:
-                    test_dict = {"answer": answer}
-                    schema.model_validate(test_dict)
-                    return answer
-                except Exception:
-                    # If validation fails, try to map the answer to a valid choice
-                    mapped_answer = self._map_answer_to_valid_choice(answer, schema)
-                    if mapped_answer:
-                        return mapped_answer
-                    continue
-        
-        # Try to find single letter answers (A, B, C, D, etc.)
-        letter_patterns = [
-            r'\b([A-D])\b',  # Single letter A, B, C, D
-            r'\(([A-D])\)',  # (A), (B), (C), (D)
-            r'([A-D])\)',    # A), B), C), D)
-        ]
-        
-        for pattern in letter_patterns:
-            matches = re.findall(pattern, text)
-            if matches:
-                answer = matches[-1].strip()
-                try:
-                    test_dict = {"answer": answer}
-                    schema.model_validate(test_dict)
-                    return answer
-                except Exception:
-                    continue
-        
-        return None
-    
-    def _map_answer_to_valid_choice(self, answer: str, schema: BaseModel) -> Optional[str]:
-        """
-        Try to map an invalid answer to a valid choice for the schema.
-        """
-        answer = answer.strip().upper()
-        
-        # For MultipleChoiceSchema, try to map numbers to letters
-        if hasattr(schema, 'model_fields') and 'answer' in schema.model_fields:
-            field_info = schema.model_fields['answer']
-            if hasattr(field_info, 'annotation'):
-                # Check if it's a Literal type with specific values
-                from typing import get_origin, get_args
-                if get_origin(field_info.annotation) is type(None):
-                    return None
-                
-                # Try to get the valid choices
-                try:
-                    valid_choices = get_args(field_info.annotation)
-                    if valid_choices:
-                        # Map numbers to letters (1->A, 2->B, 3->C, 4->D)
-                        if answer.isdigit():
-                            num = int(answer)
-                            if 1 <= num <= len(valid_choices):
-                                return valid_choices[num - 1]
-                        
-                        # Try direct mapping
-                        if answer in valid_choices:
-                            return answer
-                            
-                        # Try case-insensitive mapping
-                        for choice in valid_choices:
-                            if str(choice).upper() == answer:
-                                return str(choice)
-                except Exception:
-                    pass
-        
-        return None
+            return schema.model_validate(json_output), cost
 
-    def _extract_final_text(self, message) -> str:
-        """
-        Extract the final text from Anthropic response, handling both thinking and non-thinking responses.
-        
-        According to Anthropic docs, when thinking is enabled, the response contains:
-        - thinking content blocks (internal reasoning)
-        - text content blocks (final response)
-        
-        We want to return only the final text content, not the thinking.
-        """
-        if not message.content:
-            return ""
-        
-        # Find the last text content block (the final response)
-        text_blocks = [block for block in message.content if block.type == "text"]
-        
-        if text_blocks:
-            # Return the last text block (final response)
-            return text_blocks[-1].text
-        else:
-            # Fallback: if no text blocks found, return the first available content
-            # This handles cases where thinking is disabled or response format is different
-            for block in message.content:
-                if hasattr(block, 'text') and block.text:
-                    return block.text
-            
-            # Last resort: return empty string
-            return ""
-
-    def generate_samples(
-        self, prompt: str, n: int, temperature: float
-    ) -> Tuple[List[str], float]:
-        """
-        Generate multiple samples for the same prompt.
-        Note: Anthropic doesn't support n>1 in a single request, so we make multiple requests.
-        """
+    def chat_generate(
+        self, messages: List[Dict[str, str]], schema: Optional[BaseModel] = None
+    ) -> Tuple[Union[str, Dict], float]:
         chat_model = self.load_model()
-        samples = []
-        total_cost = 0.0
-        
-        for _ in range(n):
-            request_params = {
-                "max_tokens": 1024,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    }
-                ],
-                "model": self.model_name,
-                "temperature": temperature,
-                **self.generation_kwargs,
-            }
-            
-            message = chat_model.messages.create(**request_params)
-            cost = self.calculate_cost(
-                message.usage.input_tokens, message.usage.output_tokens
-            )
-            total_cost += cost
-            
-            # Extract the final text from the response
-            final_text = self._extract_final_text(message)
-            samples.append(final_text)
-        
-        return samples, total_cost
+        message = chat_model.messages.create(
+            max_tokens=1024,
+            messages=messages,
+            model=self.model_name,
+            temperature=self.temperature,
+            **self.generation_kwargs,
+        )
+        cost = self.calculate_cost(
+            message.usage.input_tokens, message.usage.output_tokens
+        )
+        if schema is None:
+            return message.content[0].text, cost
+        else:
+            json_output = trim_and_load_json(message.content[0].text)
+            return schema.model_validate(json_output), cost
+
+    async def a_chat_generate(
+        self, messages: List[Dict[str, str]], schema: Optional[BaseModel] = None
+    ) -> Tuple[str, float]:
+        chat_model = self.load_model(async_mode=True)
+        message = await chat_model.messages.create(
+            max_tokens=1024,
+            messages=messages,
+            model=self.model_name,
+            temperature=self.temperature,
+            **self.generation_kwargs,
+        )
+        cost = self.calculate_cost(
+            message.usage.input_tokens, message.usage.output_tokens
+        )
+        if schema is None:
+            return message.content[0].text, cost
+        else:
+            json_output = trim_and_load_json(message.content[0].text)
+            return schema.model_validate(json_output), cost
 
     ###############################################
     # Utilities
