@@ -41,6 +41,8 @@ from .role_adherence.role_adherence import (
     RoleAdherenceMetric,
 )
 from .conversational_g_eval.conversational_g_eval import ConversationalGEval
+from .turn_of_flip.turn_of_flip import TurnOfFlipMetric
+from .number_of_flips.number_of_flips import NumberOfFlipsMetric
 from .multimodal_metrics import (
     TextToImageMetric,
     ImageEditingMetric,
