@@ -173,3 +173,7 @@ secrets
 # Mac OS system files
 **/.DS_Store
 
+# Logging directory - keep directory structure but ignore contents
+logging/*
+!logging/.gitkeep
+

@@ -1,0 +1,2 @@
+# This file ensures the logging directory is tracked by git
+# while keeping the actual log files ignored by .gitignore

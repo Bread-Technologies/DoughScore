@@ -192,7 +192,7 @@ class LiteLLMModel(DeepEvalBaseLLM):
         prompt: str,
         top_logprobs: int = 5,
     ) -> Tuple[Any, float]:
-        from litellm import completion
+        from litellm import completion, get_llm_provider
 
         try:
             completion_params = {
@@ -201,9 +201,18 @@ class LiteLLMModel(DeepEvalBaseLLM):
                 "temperature": self.temperature,
                 "api_key": self.api_key,
                 "api_base": self.api_base,
-                "logprobs": True,
-                "top_logprobs": top_logprobs,
             }
+            
+            # Only add logprobs parameters for providers that support them
+            provider_info = get_llm_provider(self.model_name)
+            # get_llm_provider returns a tuple, we need the provider name
+            provider = provider_info[0] if isinstance(provider_info, tuple) else provider_info
+            if provider.lower() in ['openai', 'azure', 'azure_ad']:
+                completion_params.update({
+                    "logprobs": True,
+                    "top_logprobs": top_logprobs,
+                })
+            
             completion_params.update(self.kwargs)
 
             response = completion(**completion_params)
@@ -227,7 +236,7 @@ class LiteLLMModel(DeepEvalBaseLLM):
         prompt: str,
         top_logprobs: int = 5,
     ) -> Tuple[Any, float]:
-        from litellm import acompletion
+        from litellm import acompletion, get_llm_provider
 
         try:
             completion_params = {
@@ -236,9 +245,18 @@ class LiteLLMModel(DeepEvalBaseLLM):
                 "temperature": self.temperature,
                 "api_key": self.api_key,
                 "api_base": self.api_base,
-                "logprobs": True,
-                "top_logprobs": top_logprobs,
             }
+            
+            # Only add logprobs parameters for providers that support them
+            provider_info = get_llm_provider(self.model_name)
+            # get_llm_provider returns a tuple, we need the provider name
+            provider = provider_info[0] if isinstance(provider_info, tuple) else provider_info
+            if provider.lower() in ['openai', 'azure', 'azure_ad']:
+                completion_params.update({
+                    "logprobs": True,
+                    "top_logprobs": top_logprobs,
+                })
+            
             completion_params.update(self.kwargs)
 
             response = await acompletion(**completion_params)
