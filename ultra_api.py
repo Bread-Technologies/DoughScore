@@ -2,8 +2,8 @@ import requests
 
 API_URL = "https://ultra.dread.technology/v1/chat/completions"
 API_KEY = "sk-damn-good-ultra-bread"  # Replace with your actual API key
-# MODEL = "claude-4.1-opus"  # Or any supported model
-MODEL = "bread-pg-1"
+MODEL = "claude-4.1-opus"  # Or any supported model
+# MODEL = "bread-pg-1"
 headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {API_KEY}"
