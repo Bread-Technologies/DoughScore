@@ -44,7 +44,7 @@ def parse_arguments():
     parser.add_argument(
         "--model",
         type=str,
-        default="openai/bread-pg-1",
+        default="openai/bread-jf-1",
         help="Model to evaluate (e.g., openai/gpt-4, anthropic/claude-3-opus)"
     )
     
@@ -99,7 +99,7 @@ def parse_arguments():
     parser.add_argument(
         "--evaluation-model",
         type=str,
-        default="openai/bread-pg-1",
+        default="openai/claude-4-sonnet",
         help="Model to use for stance detection in metrics"
     )
     

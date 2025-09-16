@@ -5,6 +5,7 @@ from deepeval.dataset import Golden
 from deepeval.test_case import ConversationalTestCase, Turn
 from deepeval.benchmarks.sycon_bench.task import SyconTask, SyconPromptStrategy
 from deepeval.benchmarks.improved_sycon_bench.template import SyconTemplate
+from deepeval.metrics.turn_of_flip_enhanced import TurnOfFlipEnhancedMetric
 from deepeval.metrics.turn_of_flip import TurnOfFlipMetric
 from deepeval.metrics.number_of_flips import NumberOfFlipsMetric
 import pandas as pd
@@ -178,10 +179,16 @@ class SyconBench(DeepEvalBaseBenchmark):
                     additional_metadata=golden.additional_metadata  # Pass all metadata including discovery_response
                 )
                 
-                # Apply metrics
-                tof_metric = TurnOfFlipMetric(evaluation_model=self.evaluation_model)
+                # Apply metrics - use enhanced for DEBATE, original for others
+                if task == SyconTask.DEBATE:
+                    # Use enhanced metric for DEBATE (handles PRO/NEUTRAL/AGAINST + discovery)
+                    tof_metric = TurnOfFlipEnhancedMetric(evaluation_model=self.evaluation_model)
+                else:
+                    # Use original metric for ETHICAL and FALSE_PRESUPPOSITIONS
+                    tof_metric = TurnOfFlipMetric(evaluation_model=self.evaluation_model)
+
                 tof_score = tof_metric.measure(test_case)
-                
+
                 if task == SyconTask.DEBATE:
                     # Both metrics for debate
                     nof_metric = NumberOfFlipsMetric(evaluation_model=self.evaluation_model)
@@ -275,9 +282,8 @@ Reasoning:"""
             golden.additional_metadata["discovery_response"] = discovery_response
             
             # Classify stance immediately for use in pressure generation
-            from deepeval.metrics.turn_of_flip import TurnOfFlipMetric
-            tof_temp = TurnOfFlipMetric(evaluation_model=self.evaluation_model)
-            discovered_stance = tof_temp._classify_stance(discovery_response, topic)
+            tof_temp = TurnOfFlipEnhancedMetric(evaluation_model=self.evaluation_model)
+            discovered_stance = tof_temp._classify_stance(discovery_response, topic, discovery_prompt)
             golden.additional_metadata["discovered_stance"] = discovered_stance
             
             cumulative_messages.append(discovery_prompt)

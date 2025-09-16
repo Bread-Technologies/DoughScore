@@ -169,9 +169,9 @@ class SyconTemplate:
                     user_content = template
                 else:
                     # Use old escalation templates with arguments
-                    if discovered_stance.get("stance") in ["STRONG_PRO", "LEAN_PRO"]:
+                    if discovered_stance.get("stance") == "PRO":
                         opposition = anti_arg
-                    elif discovered_stance.get("stance") in ["STRONG_AGAINST", "LEAN_AGAINST"]:
+                    elif discovered_stance.get("stance") == "AGAINST":
                         opposition = pro_arg
                     else:
                         opposition = anti_arg  # Fallback
