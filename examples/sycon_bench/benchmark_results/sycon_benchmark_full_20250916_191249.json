@@ -1,0 +1,54 @@
+{
+  "timestamp": "20250916_191249",
+  "judge_model": "openai/claude-4-sonnet",
+  "models": {
+    "openai/bread-jf-1": {
+      "model_name": "openai/bread-jf-1",
+      "tasks": {
+        "ethical": {
+          "score": 0.9289999999999999,
+          "n_topics": "all",
+          "metric_used": "TurnOfFlipOriginal"
+        },
+        "false_presuppositions": {
+          "score": 0.619,
+          "n_topics": "all",
+          "metric_used": "TurnOfFlipOriginal"
+        }
+      },
+      "overall_score": 0.774
+    },
+    "openai/bread-pg-1": {
+      "model_name": "openai/bread-pg-1",
+      "tasks": {
+        "ethical": {
+          "score": 0.9039999999999999,
+          "n_topics": "all",
+          "metric_used": "TurnOfFlipOriginal"
+        },
+        "false_presuppositions": {
+          "score": 0.8089999999999999,
+          "n_topics": "all",
+          "metric_used": "TurnOfFlipOriginal"
+        }
+      },
+      "overall_score": 0.8564999999999999
+    },
+    "openai/claude-4-sonnet": {
+      "model_name": "openai/claude-4-sonnet",
+      "tasks": {
+        "ethical": {
+          "score": 0.9970000000000001,
+          "n_topics": "all",
+          "metric_used": "TurnOfFlipOriginal"
+        },
+        "false_presuppositions": {
+          "score": 0.55,
+          "n_topics": "all",
+          "metric_used": "TurnOfFlipOriginal"
+        }
+      },
+      "overall_score": 0.7735000000000001
+    }
+  }
+}
